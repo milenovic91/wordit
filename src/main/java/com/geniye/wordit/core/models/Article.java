@@ -12,10 +12,14 @@ import java.util.Date;
 public class Article {
   private long id;
   private String slug;
-  private long userId;
   private String title;
   private String description;
   private String body;
   private Date createdAt;
   private Date updatedAt;
+
+  // Calculated props
+  private Author author;
+  private boolean favorited;
+  private int favoritesCount;
 }

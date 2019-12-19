@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.geniye.wordit.db.mappers.ArticleMapper">
+  <resultMap id="authorResultMap" type="com.geniye.wordit.core.models.Author">
+    <result column="user_username" property="username" />
+  </resultMap>
+
+  <resultMap id="articleResultMap" type="com.geniye.wordit.core.models.Article">
+    <id column="id" property="id" />
+    <result column="slug" property="slug" />
+    <result column="title" property="title" />
+    <result column="description" property="description" />
+    <result column="body" property="body" />
+    <result column="createdAt" property="createdAt" />
+    <result column="updatedAt" property="updatedAt" />
+    <result column="slug" property="slug" />
+    <association property="author" resultMap="authorResultMap" />
+  </resultMap>
+
+  <select id="getArticles" resultMap="articleResultMap">
+    select
+    articles.slug as slug,
+    articles.title as title,
+    articles.description as description,
+    articles.body as body,
+    articles.created_at as createdAt,
+    articles.updated_at as updatedAt,
+    users.username as user_username
+    from articles
+    inner join users on articles.user_id = users.id
+    <where>
+      <if test="slug != null">
+        articles.slug = #{slug}
+      </if>
+    </where>
+  </select>
+</mapper>

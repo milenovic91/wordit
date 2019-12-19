@@ -2,13 +2,6 @@ package com.geniye.wordit.db.mappers;
 
 import com.geniye.wordit.core.models.User;
 import org.apache.ibatis.annotations.*;
-import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.TypeHandler;
-
-import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 @Mapper
 public interface UserMapper {
