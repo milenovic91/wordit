@@ -7,8 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Author {
-  private long id;
+public class Profile {
   private String username;
+  private String bio;
+  private String image;
   private boolean following;
 }

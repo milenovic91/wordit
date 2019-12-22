@@ -8,5 +8,5 @@ import java.util.List;
 
 @Mapper
 public interface ArticleMapper {
-  List<Article> getArticles(@Param("slug") String slug);
+  List<Article> getArticles(@Param("currentUser") Long currentUser, @Param("slug") String slug);
 }

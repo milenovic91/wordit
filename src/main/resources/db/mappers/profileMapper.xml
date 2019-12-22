@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.geniye.wordit.db.mappers.ProfileMapper">
+
+  <select id="getByUsername" resultType="com.geniye.wordit.core.models.Profile">
+    select
+    users.id as id,
+    users.username as username,
+    users.bio as bio,
+    users.image as image,
+    (follower_id is not null) as following
+    from users
+    left join follows on users.id = follows.followee_id and follows.follower_id = #{currentUser}
+    where username = #{username}
+  </select>
+</mapper>

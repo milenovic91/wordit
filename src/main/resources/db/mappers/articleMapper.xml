@@ -2,7 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.geniye.wordit.db.mappers.ArticleMapper">
   <resultMap id="authorResultMap" type="com.geniye.wordit.core.models.Author">
-    <result column="user_username" property="username" />
+    <id column="author_id" property="id" />
+    <result column="author_username" property="username" />
+    <result column="author_following" property="following" />
   </resultMap>
 
   <resultMap id="articleResultMap" type="com.geniye.wordit.core.models.Article">
@@ -19,13 +21,44 @@
 
   <select id="getArticles" resultMap="articleResultMap">
     select
+    articles.id as id,
     articles.slug as slug,
     articles.title as title,
     articles.description as description,
     articles.body as body,
     articles.created_at as createdAt,
     articles.updated_at as updatedAt,
-    users.username as user_username
+    users.id as author_id,
+    users.username as author_username,
+    (follower_id is not null) as author_following
+    from articles
+    inner join users on articles.user_id = users.id
+    left join follows on users.id = follows.followee_id and follows.follower_id = #{currentUser}
+    <where>
+      <if test="slug != null">
+        articles.slug = #{slug}
+      </if>
+    </where>
+  </select>
+
+  <select id="getArticles_funkyAndNotInUse" resultMap="articleResultMap">
+    select
+    articles.id as id,
+    articles.slug as slug,
+    articles.title as title,
+    articles.description as description,
+    articles.body as body,
+    articles.created_at as createdAt,
+    articles.updated_at as updatedAt,
+    users.id as author_id,
+    users.username as author_username,
+    (users.id in (
+      select
+      followee_id
+      from follows
+      left join users on follows.follower_id = users.id
+      where users.username = #{currentUser}
+    )) as author_following
     from articles
     inner join users on articles.user_id = users.id
     <where>
