@@ -15,14 +15,26 @@ public class ArticleRepository {
   private ArticleMapper articleMapper;
 
   public List<Article> getArticles(User user, String slug) {
-    return this.articleMapper.getArticles(user != null ? user.getId() : null, slug);
+    return this.articleMapper.getArticles(user != null ? user.getId() : null, slug, null);
   }
 
   public Optional<Article> getArticleBySlug(User user, String slug) {
-    List<Article> result = this.articleMapper.getArticles(user != null ? user.getId() : null, slug);
+    List<Article> result = this.articleMapper.getArticles(user != null ? user.getId() : null, slug, null);
     if (result.size() == 1) {
       return Optional.of(result.get(0));
     }
     return Optional.empty();
+  }
+
+  public Optional<Article> getArticleById(User user, Long id) {
+    List<Article> result = this.articleMapper.getArticles(user != null ? user.getId() : null, null, id);
+    if (result.size() == 1) {
+      return Optional.of(result.get(0));
+    }
+    return Optional.empty();
+  }
+
+  public void createArticle(User user, Article article) {
+    this.articleMapper.createArticle(user.getId(), article);
   }
 }

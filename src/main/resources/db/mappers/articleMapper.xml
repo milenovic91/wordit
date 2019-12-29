@@ -16,10 +16,13 @@
     <result column="createdAt" property="createdAt" />
     <result column="updatedAt" property="updatedAt" />
     <result column="slug" property="slug" />
+    <result column="favorites_count" property="favoritesCount" />
+    <result column="favorited" property="favorited" />
     <association property="author" resultMap="authorResultMap" />
   </resultMap>
 
   <select id="getArticles" resultMap="articleResultMap">
+    with selected_articles as (
     select
     articles.id as id,
     articles.slug as slug,
@@ -38,7 +41,17 @@
       <if test="slug != null">
         articles.slug = #{slug}
       </if>
-    </where>
+      <if test="id != null">
+        articles.id = #{id}
+      </if>
+    </where>),
+    currentUserFavorites as (
+    select article_id from article_favorites where user_id = ${currentUser})
+
+    select sa.*, count(af.user_id) as favorites_count, (sa.id in (select * from currentUserFavorites)) as favorited
+    from selected_articles sa
+    left join article_favorites af on sa.id = af.article_id
+    group by sa.id
   </select>
 
   <select id="getArticles_funkyAndNotInUse" resultMap="articleResultMap">
@@ -67,4 +80,9 @@
       </if>
     </where>
   </select>
+
+  <insert id="createArticle" useGeneratedKeys="true" keyProperty="article.id" keyColumn="id">
+    insert into articles (slug, title, description, body, user_id)
+    values (#{article.slug}, #{article.title}, #{article.description}, #{article.body}, #{currentUser})
+  </insert>
 </mapper>
