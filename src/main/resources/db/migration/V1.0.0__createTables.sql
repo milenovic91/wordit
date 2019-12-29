@@ -33,4 +33,18 @@ create table articles (
   body text,
   created_at timestamp not null default current_timestamp,
   updated_at timestamp not null default current_timestamp on update current_timestamp
-)
+);
+
+create table article_favorites (
+  article_id int(11) not null,
+  user_id int(11) not null,
+  primary key (article_id, user_id),
+  constraint `article_id_fk`
+    foreign key (article_id) references articles(id)
+    on delete cascade
+    on update cascade,
+  constraint `user_id_fk`
+    foreign key (user_id) references users(id)
+	on delete cascade
+    on update cascade
+);

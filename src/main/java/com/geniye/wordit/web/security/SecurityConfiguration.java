@@ -2,6 +2,7 @@ package com.geniye.wordit.web.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -26,7 +27,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     http.csrf().disable()
       .authorizeRequests()
       .antMatchers("/users/**").permitAll()
-      .antMatchers("/articles/**").permitAll()
+      .antMatchers(HttpMethod.GET, "/articles/**").permitAll()
       .antMatchers("/profile/**").permitAll()
       .anyRequest().authenticated();
     http.addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);

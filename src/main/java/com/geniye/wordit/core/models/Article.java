@@ -1,5 +1,6 @@
 package com.geniye.wordit.core.models;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,4 +23,11 @@ public class Article {
   private Author author;
   private boolean favorited;
   private int favoritesCount;
+
+  public Article(String slug, String title, String description, String body) {
+    this.slug = slug;
+    this.title = title;
+    this.description = description;
+    this.body = body;
+  }
 }
