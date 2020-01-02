@@ -12,9 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/articles")
@@ -26,8 +24,19 @@ public class ArticlesController {
   public ResponseEntity getArticles(@RequestParam(value = "limit", defaultValue = "10") int limit,
                                    @RequestParam(value = "offset", defaultValue = "0") int offset,
                                    @RequestParam(value = "author", required = false) String author,
+                                   @RequestParam(value = "favorited", required = false) String favoritedBy,
                                    @AuthenticationPrincipal User user) {
-    List<Article> result = this.articleRepository.getArticles(user, null);
+    List<Article> result = this.articleRepository.getArticles(user, author, favoritedBy, false);
+    return ResponseEntity.ok(new HashMap<String, Object>(){{
+      put("articles", result);
+    }});
+  }
+
+  @RequestMapping(path = "/feed")
+  public ResponseEntity getFeed(@RequestParam(value = "limit", defaultValue = "10") int limit,
+                                @RequestParam(value = "offset", defaultValue = "0") int offset,
+                                @AuthenticationPrincipal User user) {
+    List<Article> result = this.articleRepository.getArticles(user, null, null, true);
     return ResponseEntity.ok(new HashMap<String, Object>(){{
       put("articles", result);
     }});
@@ -62,6 +71,63 @@ public class ArticlesController {
     return ResponseEntity.status(200).body(this.articleRepository.getArticleById(user, article.getId()).get());
   }
 
+  @RequestMapping(path = "/{slug}", method = RequestMethod.PUT)
+  public ResponseEntity updateArticle(@Valid @RequestBody UpdateArticleBody body,
+                                               @PathVariable("slug") String slug,
+                                               @AuthenticationPrincipal User user) {
+    Article article = this.articleRepository.getArticleBySlug(user, slug).get();
+    if (article != null) {
+      article.update(body.getTitle(), body.getDescription(), body.getBody());
+      int rowsAffected = this.articleRepository.updateArticle(user, article);
+      if (rowsAffected == 0) {
+        throw new RuntimeException("invalid args");
+      }
+      Article result = article;
+      return ResponseEntity.status(200).body(new HashMap<String, Article>(){{
+        put("article", result);
+      }});
+    } else {
+      return ResponseEntity.status(404).body(null);
+    }
+  }
+
+  @RequestMapping(path = "/{slug}", method = RequestMethod.DELETE)
+  public ResponseEntity deleteArticle(@PathVariable("slug") String slug,
+                                      @AuthenticationPrincipal User user) {
+    int rowsAffected = this.articleRepository.deleteArticle(user, slug);
+    if (rowsAffected == 0) {
+      throw new RuntimeException("invalid request");
+    }
+    return ResponseEntity.status(200).body(null);
+  }
+
+  @RequestMapping(path = "/{slug}/favorite", method = RequestMethod.POST)
+  public ResponseEntity favoriteArticle(@PathVariable("slug") String slug,
+                                      @AuthenticationPrincipal User user) {
+    int rowsAffected = this.articleRepository.favoriteArticle(user, slug);
+    if (rowsAffected == 0) {
+      throw new RuntimeException("invalid request");
+    }
+    return ResponseEntity.status(200).body(null);
+  }
+
+  @RequestMapping(path = "/{slug}/favorite", method = RequestMethod.DELETE)
+  public ResponseEntity unfavoriteArticle(@PathVariable("slug") String slug,
+                                        @AuthenticationPrincipal User user) {
+    int rowsAffected = this.articleRepository.unfavoriteArticle(user, slug);
+    if (rowsAffected == 0) {
+      throw new RuntimeException("invalid request");
+    }
+    return ResponseEntity.status(200).body(null);
+  }
+
+  @RequestMapping(path = "/{slug}/comments", method = RequestMethod.GET)
+  public ResponseEntity getArticleComments(@PathVariable("slug") String slug) {
+    return ResponseEntity.status(200).body(new HashMap<String, Object>(){{
+      put("comments", Collections.emptyList());
+    }});
+  }
+
   private String ensureUniqueSlug(String title) {
     String[] parts = title.toLowerCase().split("\\s+");
     // TODO - Ensure that slug is not taken!
@@ -82,4 +148,12 @@ class CreateArticleBody {
   private String description;
   @NotBlank
   private String body;
+}
+
+@JsonRootName("article")
+@Getter
+class UpdateArticleBody {
+  private String title = "";
+  private String description = "";
+  private String body = "";
 }

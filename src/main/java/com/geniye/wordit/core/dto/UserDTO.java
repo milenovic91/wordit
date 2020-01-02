@@ -9,18 +9,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserDTO {
-  private long id;
   private String username;
-  private String password;
   private String email;
   private String bio;
   private String image;
   private String token;
 
   public UserDTO(User user) {
-    this.id = user.getId();
     this.username = user.getUsername();
-    this.password = user.getPassword();
     this.email = user.getEmail();
     this.bio = user.getBio();
     this.image = user.getImage();

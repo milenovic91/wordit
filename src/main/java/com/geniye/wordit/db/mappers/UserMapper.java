@@ -12,6 +12,16 @@ public interface UserMapper {
   @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn="id")
   void save(User user);
 
+  @Update(
+    "update users set " +
+    "email = #{email}, " +
+    "password = #{password}, " +
+    "bio = #{bio}, " +
+    "image = #{image} " +
+    "where id = #{id}"
+  )
+  int update(User user);
+
   @Select("select * from users where id = #{id}")
   User findById(@Param("id") long id);
 

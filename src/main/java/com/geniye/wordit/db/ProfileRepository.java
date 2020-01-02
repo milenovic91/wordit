@@ -12,8 +12,28 @@ import java.util.Optional;
 public class ProfileRepository {
   @Autowired
   ProfileMapper profileMapper;
+  @Autowired
+  UserRepository userRepository;
 
   public Optional<Profile> getByUsername(User user, String username) {
     return Optional.ofNullable(this.profileMapper.getByUsername(user != null ? user.getId() : null, username));
+  }
+
+  public int follow(User user, String username) {
+    User u = this.userRepository.findByUsername(username).get();
+    if (u != null) {
+      int ret = this.profileMapper.follow(user.getId(), u.getId());
+      System.out.println(ret);
+    }
+    return 0;
+  }
+
+  public int unfollow(User user, String username) {
+    User u = this.userRepository.findByUsername(username).get();
+    if (u != null) {
+      int ret = this.profileMapper.unfollow(user.getId(), u.getId());
+      System.out.println(ret);
+    }
+    return 0;
   }
 }

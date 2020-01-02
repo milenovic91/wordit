@@ -13,4 +13,12 @@
     left join follows on users.id = follows.followee_id and follows.follower_id = #{currentUser}
     where username = #{username}
   </select>
+
+  <insert id="follow">
+    insert into follows (follower_id, followee_id) values (#{currentUser}, #{followee})
+  </insert>
+
+  <delete id="unfollow">
+    delete from follows where follower_id = #{currentUser} and followee_id = #{followee};
+  </delete>
 </mapper>
