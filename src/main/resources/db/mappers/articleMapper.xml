@@ -4,6 +4,8 @@
   <resultMap id="authorResultMap" type="com.geniye.wordit.core.models.Author">
     <id column="author_id" property="id" />
     <result column="author_username" property="username" />
+    <result column="author_bio" property="bio" />
+    <result column="author_image" property="image" />
     <result column="author_following" property="following" />
   </resultMap>
 
@@ -33,6 +35,8 @@
     articles.updated_at as updatedAt,
     users.id as author_id,
     users.username as author_username,
+    users.bio as author_bio,
+    users.image as author_image,
     (follower_id is not null) as author_following
     from articles
     inner join users on articles.user_id = users.id
@@ -44,9 +48,23 @@
       <if test="id != null">
         articles.id = #{id}
       </if>
+      <if test="author != null">
+        articles.user_id = (select id from users where username = #{author})
+      </if>
+      <if test="favoritedBy != null">
+        articles.id in (
+          select af.article_id
+          from article_favorites af
+          inner join users on users.id = af.user_id
+          where users.username = #{favoritedBy}
+        )
+      </if>
+      <if test="feed and currentUser != null">
+        follower_id is not null
+      </if>
     </where>),
     currentUserFavorites as (
-    select article_id from article_favorites where user_id = ${currentUser})
+    select article_id from article_favorites where user_id = #{currentUser})
 
     select sa.*, count(af.user_id) as favorites_count, (sa.id in (select * from currentUserFavorites)) as favorited
     from selected_articles sa
@@ -85,4 +103,26 @@
     insert into articles (slug, title, description, body, user_id)
     values (#{article.slug}, #{article.title}, #{article.description}, #{article.body}, #{currentUser})
   </insert>
+
+  <update id="updateArticle">
+    update articles set
+      title = #{article.title},
+      description = #{article.description},
+      body = #{article.body}
+    where id = #{article.id} and user_id = #{currentUser}
+  </update>
+
+  <delete id="deleteArticle">
+    delete from articles
+    where slug = #{slug} and user_id = #{currentUser}
+  </delete>
+
+  <insert id="favoriteArticle">
+    insert into article_favorites values((select id from articles where slug = #{slug}), #{currentUser})
+  </insert>
+
+  <delete id="unfavoriteArticle">
+    delete from article_favorites
+    where article_id = (select id from articles where slug = #{slug}) and user_id = #{currentUser}
+  </delete>
 </mapper>

@@ -25,6 +25,10 @@ public class UserRepository {
     }
   }
 
+  public int update(User user) {
+    return this.userMapper.update(user);
+  }
+
   public Optional<User> findById(int id) {
     return Optional.ofNullable(this.userMapper.findById(id));
   }

@@ -30,4 +30,16 @@ public class Article {
     this.description = description;
     this.body = body;
   }
+
+  public void update(String title, String description, String body) {
+    if (!"".equals(title)) {
+      this.setTitle(title);
+    }
+    if (!"".equals(description)) {
+      this.setDescription(description);
+    }
+    if (!"".equals(body)) {
+      this.setBody(body);
+    }
+  }
 }

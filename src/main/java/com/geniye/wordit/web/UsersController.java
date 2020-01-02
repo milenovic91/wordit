@@ -5,8 +5,11 @@ import com.geniye.wordit.core.TokenService;
 import com.geniye.wordit.core.dto.UserDTO;
 import com.geniye.wordit.core.models.User;
 import com.geniye.wordit.db.UserRepository;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +20,6 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(value = "/users")
 public class UsersController {
   private UserRepository userRepository;
   private TokenService tokenService;
@@ -29,7 +31,7 @@ public class UsersController {
     this.tokenService = tokenService;
   }
 
-  @RequestMapping(method = RequestMethod.POST)
+  @RequestMapping(path = "/users", method = RequestMethod.POST)
   public ResponseEntity createUser(@Valid @RequestBody CreateUserBody body, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       throw new RuntimeException(bindingResult.toString());
@@ -42,10 +44,10 @@ public class UsersController {
      */
     User user = new User(0, body.username, body.password, body.email, null, null);
     this.userRepository.save(user);
-    return ResponseEntity.status(200).body(this.userResponse(user));
+    return ResponseEntity.status(200).body(this.userResponse(user, null));
   }
 
-  @RequestMapping(path = "/login", method = RequestMethod.POST)
+  @RequestMapping(path = "users/login", method = RequestMethod.POST)
   public ResponseEntity loginUser(@Valid @RequestBody LoginUserBody body, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       throw new RuntimeException(bindingResult.toString());
@@ -55,14 +57,28 @@ public class UsersController {
       if (!user.get().getPassword().equals(body.password)) {
         throw new RuntimeException("Username and password do not match");
       }
-      return ResponseEntity.status(200).body(this.userResponse(user.get()));
+      return ResponseEntity.status(200).body(this.userResponse(user.get(), null));
     }
     throw new RuntimeException("Username and password do not match");
   }
 
-  private HashMap<String, UserDTO> userResponse(User user) {
+  @RequestMapping(path = "/user", method = RequestMethod.GET)
+  public ResponseEntity currentUser(@AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(this.userResponse(user, null));
+  }
+
+  @RequestMapping(path = "/user", method = RequestMethod.PUT)
+  public ResponseEntity updateCurrentUser(@Valid @RequestBody UpdateUserBody body, @AuthenticationPrincipal User user) {
+    user.update(body.getEmail(), body.getPassword(), body.getBio(), body.getImage());
+    this.userRepository.update(user);
+    return ResponseEntity.status(200).body(this.userResponse(user, null));
+  }
+
+  private HashMap<String, UserDTO> userResponse(User user, String token) {
     UserDTO userDTO = new UserDTO(user);
-    userDTO.setToken(this.tokenService.generateToken(user));
+    if (token == null) {
+      userDTO.setToken(this.tokenService.generateToken(user));
+    }
     return new HashMap<String, UserDTO>() {{
       put("user", userDTO);
     }};
@@ -87,4 +103,15 @@ class LoginUserBody {
   public String email;
   @NotBlank
   public String password;
+}
+
+@Getter
+@JsonRootName("user")
+@NoArgsConstructor
+class UpdateUserBody {
+  @Email(message = "should be an email")
+  private String email = "";
+  private String password = "";
+  private String bio = "";
+  private String image = "";
 }

@@ -25,10 +25,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .headers().frameOptions().sameOrigin();
 
     http.csrf().disable()
+      .cors().and()
       .authorizeRequests()
       .antMatchers("/users/**").permitAll()
       .antMatchers(HttpMethod.GET, "/articles/**").permitAll()
-      .antMatchers("/profile/**").permitAll()
+      .antMatchers("/profiles/**").permitAll()
+      .antMatchers("/tags").permitAll()
       .anyRequest().authenticated();
     http.addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
   }

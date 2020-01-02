@@ -10,5 +10,7 @@ import lombok.Setter;
 public class Author {
   private long id;
   private String username;
+  private String bio;
+  private String image;
   private boolean following;
 }
